@@ -11,7 +11,8 @@ def extract_ext(url):
     return os.path.splitext(path)[1]
 
 
-def get_image(directory, filename, image_link, params=None):
+def download_image(directory, filename, image_link, params=None):
+    Path(directory).mkdir(parents=False, exist_ok=True)
     file_path = Path(directory)/filename
     response = requests.get(image_link, params=params)
     response.raise_for_status()
@@ -29,19 +30,18 @@ def fetch_spacex_launch_images(directory, launch_number):
     
     for image_number, image_link in enumerate(image_links, start=1):
         filename = 'spacex{0}{1}'.format(image_number, extract_ext(image_link))
-        get_image(directory, filename, image_link)
+        download_image(directory, filename, image_link)
 
 
 def fetch_nasa_images(directory, count, nasa_api_key):
     url = 'https://api.nasa.gov/planetary/apod'
     params = {'api_key':nasa_api_key, 'count':count}
-    nasa_images = []
     response = requests.get(url, params=params)
     response.raise_for_status()
 
     for image_number, item in enumerate(response.json(), start=1):
         filename = 'nasa{0}{1}'.format(image_number, extract_ext(item['hdurl']))
-        get_image(directory, filename, item['hdurl'])
+        download_image(directory, filename, item['hdurl'])
 
 
 def fetch_nasa_epic_images(directory, nasa_api_key):
@@ -58,4 +58,4 @@ def fetch_nasa_epic_images(directory, nasa_api_key):
         image_timestamp_path = image_datetime.strftime('%Y/%m/%d')
         image_link = img_url_template.format(image_timestamp_path, image_id)
         filename = '{0}.png'.format(image_id)
-        get_image(directory, filename, image_link, params=params)
+        download_image(directory, filename, image_link, params=params)
